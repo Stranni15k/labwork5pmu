@@ -1,0 +1,19 @@
+<resources>
+    <string name="app_name">pmu-demo</string>
+    <string name="task_firstname">Имя</string>
+    <string name="task_lastname">Фамилия</string>
+    <string name="task_user">Группа</string>
+    <string name="task_phone">Телефон</string>
+    <string name="task_email">e-mail</string>
+    <string name="task_main_title">Список студентов</string>
+    <string name="task_view_title">Профиль студента</string>
+    <string name="task_empty_description">Записи о студентах отсутствуют</string>
+    <string name="task_user_not_select">Группа не указана</string>
+    <string name="task_save_button">Сохранить</string>
+    <string name="about_title">О нас</string>
+    <string name="about_text">
+        <p>Это текст <b>о нас</b>!</p>\n\n
+        <p>Здесь могла быть Ваша реклама!</p>\n\n
+        <p>Наш сайт <a href="https://ulstu.ru">ulstu.ru</a></p>
+    </string>
+</resources>

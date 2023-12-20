@@ -1,0 +1,12 @@
+{
+  "name": "fake-db",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "json-server --watch data.json --host 0.0.0.0 -p 8079"
+  },
+  "dependencies": {
+  },
+  "devDependencies": {
+    "json-server": "0.17.4"
+  }
+}

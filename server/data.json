@@ -1,0 +1,32 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "name": "Name",
+      "login": "Login"
+    },
+    {
+      "id": 2,
+      "name": "Test",
+      "login": "Log"
+    }
+  ],
+  "tasks": [
+    {
+      "id": 1,
+      "name": "Test",
+      "description": "Test",
+      "endDate": "20.12.2023",
+      "favorite": false,
+      "userId": 1
+    },
+    {
+      "name": "Test1",
+      "description": "Test2",
+      "endDate": "Test3",
+      "favorite": false,
+      "userId": 1,
+      "id": 2
+    }
+  ]
+}
