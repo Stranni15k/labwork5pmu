@@ -27,7 +27,7 @@ data class Task(
     @ColumnInfo(name = "endDate")
     val endDate: String,
     @ColumnInfo(name = "favorite")
-    val favorite: Boolean,
+    var favorite: Boolean,
     @ColumnInfo(name = "user_id", index = true)
     val userId: Int,
 ) {

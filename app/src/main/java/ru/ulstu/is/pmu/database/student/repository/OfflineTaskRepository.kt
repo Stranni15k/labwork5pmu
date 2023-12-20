@@ -27,6 +27,9 @@ class OfflineTaskRepository(private val taskDao: TaskDao) : TaskRepository {
     override suspend fun updateTask(task: Task) = taskDao.update(task)
 
     override suspend fun deleteTask(task: Task) = taskDao.delete(task)
+    override suspend fun favoriteTask(task: Task) {
+        TODO("Not yet implemented")
+    }
 
     fun getAllTasksPagingSource(): PagingSource<Int, Task> = taskDao.getAll()
 

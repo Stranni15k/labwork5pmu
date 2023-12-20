@@ -60,6 +60,4 @@ class RestTaskRepository(
     override suspend fun deleteTask(task: Task) {
         service.deleteTask(task.uid).toTask()
     }
-
-
 }

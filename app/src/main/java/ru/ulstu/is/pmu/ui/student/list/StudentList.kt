@@ -15,9 +15,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.IconButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
@@ -93,10 +96,22 @@ fun TaskList(
                 val route = Screen.TaskEdit.route.replace("{id}", uid.toString())
                 navController.navigate(route)
             },
-            onSwipe = { task: Task ->
+            onDeleteClick = { task: Task ->
+                // Обработка удаления задачи
                 coroutineScope.launch {
                     viewModel.deleteTask(task)
                 }
+            },
+            onAddToFavoritesClick = { task: Task ->
+                // Обработка добавления задачи в избранное
+                coroutineScope.launch {
+                    viewModel.favoriteTask(task)
+                }
+            },
+            onEditClick = { task: Task ->
+                // Обработка редактирования задачи
+                val route = Screen.TaskEdit.route.replace("{id}", task.uid.toString())
+                navController.navigate(route)
             }
         )
     }
@@ -130,29 +145,64 @@ fun DismissBackground(dismissState: DismissState) {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 @Composable
 private fun SwipeToDelete(
-    dismissState: DismissState,
     task: Task,
-    onClick: (uid: Int) -> Unit
+    onClick: (uid: Int) -> Unit,
+    onDeleteClick: (task: Task) -> Unit,
+    onAddToFavoritesClick: (task: Task) -> Unit,
+    onEditClick: (task: Task) -> Unit
 ) {
-    SwipeToDismiss(
-        modifier = Modifier.zIndex(1f),
-        state = dismissState,
-        directions = setOf(
-            DismissDirection.EndToStart
-        ),
-        background = {
-            DismissBackground(dismissState)
-        },
-        dismissContent = {
-            TaskListItem(task = task,
-                modifier = Modifier
-                    .padding(vertical = 7.dp)
-                    .clickable { onClick(task.uid) })
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 7.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = String.format("%s %s", task.name, task.description),
+                modifier = Modifier.weight(1f)
+            )
+
+            IconButton(
+                onClick = { onEditClick(task) },
+                modifier = Modifier.padding(start = 8.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Edit,
+                    contentDescription = "Редактировать",
+                    tint = Color.Blue
+                )
+            }
+
+            IconButton(
+                onClick = { onDeleteClick(task) },
+                modifier = Modifier.padding(start = 8.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = "Удалить",
+                    tint = Color.Red
+                )
+            }
+
+            IconButton(
+                onClick = { onAddToFavoritesClick(task) },
+                modifier = Modifier.padding(start = 8.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Favorite,
+                    contentDescription = "Добавить в избранное"
+                )
+            }
         }
-    )
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
@@ -161,7 +211,9 @@ private fun TaskList(
     modifier: Modifier = Modifier,
     taskList: LazyPagingItems<Task>,
     onClick: (uid: Int) -> Unit,
-    onSwipe: (task: Task) -> Unit
+    onDeleteClick: (task: Task) -> Unit,
+    onAddToFavoritesClick: (task: Task) -> Unit,
+    onEditClick: (task: Task) -> Unit
 ) {
     val refreshScope = rememberCoroutineScope()
     var refreshing by remember { mutableStateOf(false) }
@@ -186,34 +238,13 @@ private fun TaskList(
                 ) { index ->
                     val task = taskList[index]
                     task?.let {
-                        var show by remember { mutableStateOf(true) }
-                        val dismissState = rememberDismissState(
-                            confirmValueChange = {
-                                if (it == DismissValue.DismissedToStart ||
-                                    it == DismissValue.DismissedToEnd
-                                ) {
-                                    show = false
-                                    true
-                                } else false
-                            }, positionalThreshold = { 200.dp.toPx() }
+                        SwipeToDelete(
+                            task = task,
+                            onClick = onClick,
+                            onDeleteClick = onDeleteClick,
+                            onAddToFavoritesClick = onAddToFavoritesClick,
+                            onEditClick = onEditClick
                         )
-
-                        AnimatedVisibility(
-                            show, exit = fadeOut(spring())
-                        ) {
-                            SwipeToDelete(
-                                dismissState = dismissState,
-                                task = task,
-                                onClick = onClick
-                            )
-                        }
-
-                        LaunchedEffect(show) {
-                            if (!show) {
-                                delay(800)
-                                onSwipe(task)
-                            }
-                        }
                     }
                 }
             }
@@ -226,6 +257,8 @@ private fun TaskList(
         }
     }
 }
+
+
 
 @Composable
 private fun TaskListItem(
@@ -240,44 +273,6 @@ private fun TaskListItem(
         ) {
             Text(
                 text = String.format("%s %s", task.name, task.description)
-            )
-        }
-    }
-}
-
-@Preview(name = "Light Mode", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO)
-@Preview(name = "Dark Mode", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
-@Composable
-fun TaskListPreview() {
-    PmudemoTheme {
-        Surface(
-            color = MaterialTheme.colorScheme.background
-        ) {
-            TaskList(
-                taskList = MutableStateFlow(
-                    PagingData.from((1..20).map { i -> Task.getTask(i) })
-                ).collectAsLazyPagingItems(),
-                onClick = {},
-                onSwipe = {}
-            )
-        }
-    }
-}
-
-@Preview(name = "Light Mode", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO)
-@Preview(name = "Dark Mode", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
-@Composable
-fun TaskEmptyListPreview() {
-    PmudemoTheme {
-        Surface(
-            color = MaterialTheme.colorScheme.background
-        ) {
-            TaskList(
-                taskList = MutableStateFlow(
-                    PagingData.empty<Task>()
-                ).collectAsLazyPagingItems(),
-                onClick = {},
-                onSwipe = {}
             )
         }
     }

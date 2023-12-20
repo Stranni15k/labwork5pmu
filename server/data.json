@@ -14,19 +14,11 @@
   "tasks": [
     {
       "id": 1,
-      "name": "Test",
-      "description": "Test",
-      "endDate": "20.12.2023",
+      "name": "123456",
+      "description": "32155",
+      "endDate": "55",
       "favorite": false,
       "userId": 1
-    },
-    {
-      "name": "Test1",
-      "description": "Test2",
-      "endDate": "Test3",
-      "favorite": false,
-      "userId": 1,
-      "id": 2
     }
   ]
 }
