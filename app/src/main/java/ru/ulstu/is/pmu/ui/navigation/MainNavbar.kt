@@ -31,6 +31,7 @@ import androidx.navigation.navArgument
 import ru.ulstu.`is`.pmu.R
 import ru.ulstu.`is`.pmu.ui.about.About
 import ru.ulstu.`is`.pmu.ui.task.edit.TaskEdit
+import ru.ulstu.`is`.pmu.ui.task.list.FavoriteTaskList
 import ru.ulstu.`is`.pmu.ui.task.list.TaskList
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -109,6 +110,7 @@ fun Navhost(
         ) {
             TaskEdit(navController)
         }
+        composable(Screen.TaskFavoriteList.route) { FavoriteTaskList(navController) }
     }
 }
 

@@ -20,6 +20,9 @@ enum class Screen(
     About(
         "about", R.string.about_title, Icons.Filled.Info
     ),
+    TaskFavoriteList(
+        "task-favorite", R.string.task_favorite_view_title
+    ),
     TaskEdit(
         "task-edit/{id}", R.string.task_view_title, showInBottomBar = false
     );
@@ -27,6 +30,7 @@ enum class Screen(
     companion object {
         val bottomBarItems = listOf(
             TaskList,
+            TaskFavoriteList,
             About,
         )
 

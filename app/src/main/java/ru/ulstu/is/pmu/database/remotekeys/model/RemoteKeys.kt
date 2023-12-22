@@ -5,9 +5,11 @@ import androidx.room.PrimaryKey
 import androidx.room.TypeConverter
 import androidx.room.TypeConverters
 import ru.ulstu.`is`.pmu.database.task.model.Task
+import ru.ulstu.`is`.pmu.database.task.model.User
 
 enum class RemoteKeyType(private val type: String) {
-    STUDENT(Task::class.simpleName ?: "Task");
+    STUDENT(Task::class.simpleName ?: "Task"),
+    USER(User::class.simpleName ?: "User");
 
     @TypeConverter
     fun toRemoteKeyType(value: String) = RemoteKeyType.values().first { it.type == value }

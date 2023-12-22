@@ -6,8 +6,11 @@ import ru.ulstu.`is`.pmu.database.task.model.Task
 
 interface TaskRepository {
     fun getAllTasks(): Flow<PagingData<Task>>
+    fun getAllFavoriteTasks(): Flow<PagingData<Task>>
+    fun getAllDateTasks(): Flow<PagingData<Task>>
     suspend fun getTask(uid: Int): Task
     suspend fun insertTask(task: Task)
     suspend fun updateTask(task: Task)
     suspend fun deleteTask(task: Task)
+    suspend fun favoriteTask(task: Task)
 }

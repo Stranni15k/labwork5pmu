@@ -6,17 +6,9 @@ import kotlinx.coroutines.flow.Flow
 import ru.ulstu.`is`.pmu.common.TaskRepository
 import ru.ulstu.`is`.pmu.database.task.model.Task
 
-class TaskListViewModel(
+class FavoriteTaskListViewModel(
     private val taskRepository: TaskRepository
 ) : ViewModel() {
 
-    val taskListUiState: Flow<PagingData<Task>> = taskRepository.getAllDateTasks()
-
-    suspend fun deleteTask(task: Task) {
-        taskRepository.deleteTask(task)
-    }
-
-    suspend fun favoriteTask(task: Task) {
-        taskRepository.favoriteTask(task)
-    }
+    val taskListUiState: Flow<PagingData<Task>> = taskRepository.getAllFavoriteTasks()
 }

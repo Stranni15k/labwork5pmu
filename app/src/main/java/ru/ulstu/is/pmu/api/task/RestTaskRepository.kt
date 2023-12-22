@@ -46,6 +46,50 @@ class RestTaskRepository(
         ).flow
     }
 
+    override fun getAllFavoriteTasks(): Flow<PagingData<Task>> {
+        Log.d(RestTaskRepository::class.simpleName, "Get tasks")
+
+        val pagingSourceFactory = { dbTaskRepository.getAllTasksFavoritePagingSource() }
+
+        @OptIn(ExperimentalPagingApi::class)
+        return Pager(
+            config = PagingConfig(
+                pageSize = AppContainer.LIMIT,
+                enablePlaceholders = false
+            ),
+            remoteMediator = TaskRemoteMediator(
+                service,
+                dbTaskRepository,
+                dbRemoteKeyRepository,
+                userRestRepository,
+                database,
+            ),
+            pagingSourceFactory = pagingSourceFactory
+        ).flow
+    }
+
+    override fun getAllDateTasks(): Flow<PagingData<Task>> {
+        Log.d(RestTaskRepository::class.simpleName, "Get tasks")
+
+        val pagingSourceFactory = { dbTaskRepository.getAllTasksDatePagingSource() }
+
+        @OptIn(ExperimentalPagingApi::class)
+        return Pager(
+            config = PagingConfig(
+                pageSize = AppContainer.LIMIT,
+                enablePlaceholders = false
+            ),
+            remoteMediator = TaskRemoteMediator(
+                service,
+                dbTaskRepository,
+                dbRemoteKeyRepository,
+                userRestRepository,
+                database,
+            ),
+            pagingSourceFactory = pagingSourceFactory
+        ).flow
+    }
+
     override suspend fun getTask(uid: Int): Task =
         service.getTask(uid).toTask()
 
@@ -59,5 +103,10 @@ class RestTaskRepository(
 
     override suspend fun deleteTask(task: Task) {
         service.deleteTask(task.uid).toTask()
+    }
+
+    override suspend fun favoriteTask(task: Task) {
+        task.favorite = true
+        service.updateTask(task.uid, task.toTaskRemote()).toTask()
     }
 }

@@ -20,6 +20,22 @@ class OfflineTaskRepository(private val taskDao: TaskDao) : TaskRepository {
         pagingSourceFactory = taskDao::getAll
     ).flow
 
+    override fun getAllFavoriteTasks(): Flow<PagingData<Task>> = Pager(
+        config = PagingConfig(
+            pageSize = AppContainer.LIMIT,
+            enablePlaceholders = false
+        ),
+        pagingSourceFactory = taskDao::getFavoriteTasks
+    ).flow
+
+    override fun getAllDateTasks(): Flow<PagingData<Task>> = Pager(
+        config = PagingConfig(
+            pageSize = AppContainer.LIMIT,
+            enablePlaceholders = false
+        ),
+        pagingSourceFactory = taskDao::getTasksSortedByDate
+    ).flow
+
     override suspend fun getTask(uid: Int): Task = taskDao.getByUid(uid).first()
 
     override suspend fun insertTask(task: Task) = taskDao.insert(task)
@@ -27,11 +43,16 @@ class OfflineTaskRepository(private val taskDao: TaskDao) : TaskRepository {
     override suspend fun updateTask(task: Task) = taskDao.update(task)
 
     override suspend fun deleteTask(task: Task) = taskDao.delete(task)
+
     override suspend fun favoriteTask(task: Task) {
-        TODO("Not yet implemented")
+        taskDao.updateFavorite(task.uid, !task.favorite)
     }
 
     fun getAllTasksPagingSource(): PagingSource<Int, Task> = taskDao.getAll()
+
+    fun getAllTasksFavoritePagingSource(): PagingSource<Int, Task> = taskDao.getFavoriteTasks()
+
+    fun getAllTasksDatePagingSource(): PagingSource<Int, Task> = taskDao.getTasksSortedByDate()
 
     suspend fun insertTasks(tasks: List<Task>) =
         taskDao.insert(*tasks.toTypedArray())

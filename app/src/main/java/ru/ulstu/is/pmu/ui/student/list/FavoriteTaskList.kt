@@ -68,92 +68,28 @@ import ru.ulstu.`is`.pmu.ui.navigation.Screen
 import ru.ulstu.`is`.pmu.ui.theme.PmudemoTheme
 
 @Composable
-fun TaskList(
+fun FavoriteTaskList(
     navController: NavController,
-    viewModel: TaskListViewModel = viewModel(factory = AppViewModelProvider.Factory)
+    viewModel: FavoriteTaskListViewModel = viewModel(factory = AppViewModelProvider.Factory)
 ) {
     val coroutineScope = rememberCoroutineScope()
     val taskListUiState = viewModel.taskListUiState.collectAsLazyPagingItems()
     Scaffold(
-        topBar = {},
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = {
-                    val route = Screen.TaskEdit.route.replace("{id}", 0.toString())
-                    navController.navigate(route)
-                },
-            ) {
-                Icon(Icons.Filled.Add, "Добавить")
-            }
-        }
+        topBar = {}
     ) { innerPadding ->
-        TaskList(
+        FavoriteTaskList(
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize(),
-            taskList = taskListUiState,
-            onClick = { uid: Int ->
-                val route = Screen.TaskEdit.route.replace("{id}", uid.toString())
-                navController.navigate(route)
-            },
-            onDeleteClick = { task: Task ->
-                // Обработка удаления задачи
-                coroutineScope.launch {
-                    viewModel.deleteTask(task)
-                    taskListUiState.refresh()
-                }
-            },
-            onAddToFavoritesClick = { task: Task ->
-                // Обработка добавления задачи в избранное
-                coroutineScope.launch {
-                    viewModel.favoriteTask(task)
-                }
-            },
-            onEditClick = { task: Task ->
-                // Обработка редактирования задачи
-                val route = Screen.TaskEdit.route.replace("{id}", task.uid.toString())
-                navController.navigate(route)
-            }
+            taskList = taskListUiState
         )
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun DismissBackground(dismissState: DismissState) {
-    val color = when (dismissState.dismissDirection) {
-        DismissDirection.StartToEnd -> Color.Transparent
-        DismissDirection.EndToStart -> Color(0xFFFF1744)
-        null -> Color.Transparent
-    }
-    val direction = dismissState.dismissDirection
-
-    Row(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(color)
-            .padding(12.dp, 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.End
-    ) {
-        if (direction == DismissDirection.EndToStart) {
-            Icon(
-                Icons.Default.Delete,
-                contentDescription = "delete",
-                tint = Color.White
-            )
-        }
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 @Composable
 private fun SwipeToDelete(
-    task: Task,
-    onClick: (uid: Int) -> Unit,
-    onDeleteClick: (task: Task) -> Unit,
-    onAddToFavoritesClick: (task: Task) -> Unit,
-    onEditClick: (task: Task) -> Unit
+    task: Task
 ) {
     Card(
         modifier = Modifier
@@ -167,55 +103,18 @@ private fun SwipeToDelete(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = String.format("%s%n%s%n%s", task.name, task.description, task.endDate),
+                text = String.format("%s %s", task.name, task.description),
                 modifier = Modifier.weight(1f)
             )
-
-            IconButton(
-                onClick = { onEditClick(task) },
-                modifier = Modifier.padding(start = 8.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Edit,
-                    contentDescription = "Редактировать",
-                    tint = Color.Black
-                )
-            }
-
-            IconButton(
-                onClick = { onDeleteClick(task) },
-                modifier = Modifier.padding(start = 8.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Delete,
-                    contentDescription = "Удалить",
-                    tint = Color.Black
-                )
-            }
-
-            IconButton(
-                onClick = { onAddToFavoritesClick(task) },
-                modifier = Modifier.padding(start = 8.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Favorite,
-                    contentDescription = "Добавить в избранное",
-                    tint = Color.Black
-                )
-            }
         }
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 @Composable
-private fun TaskList(
+private fun FavoriteTaskList(
     modifier: Modifier = Modifier,
-    taskList: LazyPagingItems<Task>,
-    onClick: (uid: Int) -> Unit,
-    onDeleteClick: (task: Task) -> Unit,
-    onAddToFavoritesClick: (task: Task) -> Unit,
-    onEditClick: (task: Task) -> Unit
+    taskList: LazyPagingItems<Task>
 ) {
     val refreshScope = rememberCoroutineScope()
     var refreshing by remember { mutableStateOf(false) }
@@ -241,11 +140,7 @@ private fun TaskList(
                     val task = taskList[index]
                     task?.let {
                         SwipeToDelete(
-                            task = task,
-                            onClick = onClick,
-                            onDeleteClick = onDeleteClick,
-                            onAddToFavoritesClick = onAddToFavoritesClick,
-                            onEditClick = onEditClick
+                            task = task
                         )
                     }
                 }
@@ -255,6 +150,26 @@ private fun TaskList(
                 Modifier
                     .align(CenterHorizontally)
                     .zIndex(100f)
+            )
+        }
+    }
+}
+
+
+
+@Composable
+private fun TaskListItem(
+    task: Task, modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column(
+            modifier = modifier.padding(all = 10.dp)
+        ) {
+            Text(
+                text = String.format("%s %s", task.name, task.description)
             )
         }
     }

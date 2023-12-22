@@ -55,7 +55,6 @@ class TaskEditViewModel(
             name.isNotBlank()
                     && description.isNotBlank()
                     && endDate.isNotBlank()
-                    && userId > 0
         }
     }
 }

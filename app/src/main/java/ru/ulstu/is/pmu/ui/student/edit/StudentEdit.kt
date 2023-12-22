@@ -1,11 +1,19 @@
 package ru.ulstu.`is`.pmu.ui.task.edit
 
 import android.content.res.Configuration
+import android.widget.CalendarView
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -16,6 +24,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -23,12 +32,16 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import kotlinx.coroutines.launch
@@ -37,6 +50,10 @@ import ru.ulstu.`is`.pmu.database.task.model.User
 import ru.ulstu.`is`.pmu.database.task.model.Task
 import ru.ulstu.`is`.pmu.common.AppViewModelProvider
 import ru.ulstu.`is`.pmu.ui.theme.PmudemoTheme
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Date
+import java.util.Locale
 
 @Composable
 fun TaskEdit(
@@ -121,6 +138,7 @@ private fun TaskEdit(
     onUpdate: (TaskDetails) -> Unit,
     onUserUpdate: (User) -> Unit
 ) {
+    var showInvalidDateDialog by remember { mutableStateOf(false) }
     Column(
         Modifier
             .fillMaxWidth()
@@ -140,48 +158,161 @@ private fun TaskEdit(
             label = { Text(stringResource(id = R.string.task_lastname)) },
             singleLine = true
         )
-        UserDropDown(
-            userUiState = userUiState,
-            usersListUiState = usersListUiState,
-            onUserUpdate = {
-                onUpdate(taskUiState.taskDetails.copy(userId = it.uid))
-                onUserUpdate(it)
-            }
-        )
+        var showDatePicker by remember { mutableStateOf(false) }
+        if (showDatePicker) {
+            DatePicker(
+                onDateSelected = { selectedDate ->
+                    onUpdate(taskUiState.taskDetails.copy(endDate = SimpleDateFormat("dd.MM.yyyy").format(selectedDate)))
+                    showDatePicker = false
+                },
+                onDismissRequest = {
+                    showDatePicker = false
+                }
+            )
+        }
+
+        Button(
+            onClick = { showDatePicker = true },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Выбрать дату окончания")
+        }
+
         OutlinedTextField(
             modifier = Modifier.fillMaxWidth(),
             value = taskUiState.taskDetails.endDate,
             onValueChange = { onUpdate(taskUiState.taskDetails.copy(endDate = it)) },
             label = { Text(stringResource(id = R.string.task_phone)) },
-            singleLine = true
+            singleLine = true ,
+            enabled = false
         )
         Button(
-            onClick = onClick,
+            onClick = {
+                if (!isValidDate(taskUiState.taskDetails.endDate)) {
+                    showInvalidDateDialog = true
+                } else {
+                    onClick()
+                }
+            },
             enabled = taskUiState.isEntryValid,
-            shape = MaterialTheme.shapes.small,
             modifier = Modifier.fillMaxWidth()
         ) {
             Text(text = stringResource(R.string.task_save_button))
         }
     }
+
+    if (showInvalidDateDialog) {
+        AlertDialog(
+            onDismissRequest = { showInvalidDateDialog = false },
+            title = { Text("Неверный формат даты") },
+            text = { Text("Введите дату по шаблону: 01.12.2023") },
+            confirmButton = {
+                Button(onClick = { showInvalidDateDialog = false }) {
+                    Text("Подтвердить")
+                }
+            }
+        )
+    }
 }
 
-@Preview(name = "Light Mode", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO)
-@Preview(name = "Dark Mode", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+fun isValidDate(date: String): Boolean {
+    val regex = Regex("""^\d{2}\.\d{2}\.\d{4}$""")
+    return regex.matches(date)
+}
+
 @Composable
-fun TaskEditPreview() {
-    PmudemoTheme {
-        Surface(
-            color = MaterialTheme.colorScheme.background
+fun CustomCalendarView(onDateSelected: (Date) -> Unit) {
+    AndroidView(
+        modifier = Modifier.wrapContentSize(),
+        factory = { context ->
+            // Используем стандартный контекст, без применения кастомной темы
+            CalendarView(context).apply {
+                // Настройки CalendarView
+                val calendar = Calendar.getInstance()
+
+                setOnDateChangeListener { _, year, month, dayOfMonth ->
+                    calendar.set(Calendar.YEAR, year)
+                    calendar.set(Calendar.MONTH, month)
+                    calendar.set(Calendar.DAY_OF_MONTH, dayOfMonth)
+                    onDateSelected(calendar.time)
+                }
+            }
+        }
+    )
+}
+
+@Composable
+fun DatePicker(onDateSelected: (Date) -> Unit, onDismissRequest: () -> Unit) {
+    val selDate = remember { mutableStateOf(Date()) }
+
+    //todo - add strings to resource after POC
+    Dialog(onDismissRequest = { onDismissRequest() }, properties = DialogProperties()) {
+        Column(
+            modifier = Modifier
+                .wrapContentSize()
+                .background(
+                    color = Color.White
+                )
         ) {
-            TaskEdit(
-                taskUiState = Task.getTask().toUiState(true),
-                userUiState = User.DEMO_User.toUiState(),
-                usersListUiState = UsersListUiState(listOf()),
-                onClick = {},
-                onUpdate = {},
-                onUserUpdate = {}
-            )
+            Column(
+                Modifier
+                    .defaultMinSize(minHeight = 72.dp)
+                    .fillMaxWidth()
+                    .background(
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    .padding(16.dp)
+            ) {
+                Text(
+                    text = "Выберите дату"
+                )
+
+                Spacer(modifier = Modifier.size(24.dp))
+
+                Text(
+                    text = SimpleDateFormat("MMM d, yyyy", Locale.getDefault()).format(selDate.value)
+                )
+
+                Spacer(modifier = Modifier.size(16.dp))
+            }
+
+            CustomCalendarView(onDateSelected = {
+                selDate.value = it
+            })
+
+            Spacer(modifier = Modifier.size(8.dp))
+
+            Row(
+                modifier = Modifier
+                    .align(Alignment.End)
+                    .padding(bottom = 16.dp, end = 16.dp)
+                    .background(
+                        color = Color.White,
+                        shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
+                    )
+            ) {
+                TextButton(
+                    onClick = onDismissRequest
+                ) {
+                    //TODO - hardcode string
+                    Text(
+                        text = "Отмена"
+                    )
+                }
+
+                TextButton(
+                    onClick = {
+                        onDateSelected(selDate.value)
+                        onDismissRequest()
+                    }
+                ) {
+                    //TODO - hardcode string
+                    Text(
+                        text = "Подтвердить"
+                    )
+                }
+
+            }
         }
     }
 }

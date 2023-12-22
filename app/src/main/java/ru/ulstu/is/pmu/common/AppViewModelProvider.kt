@@ -8,6 +8,8 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import ru.ulstu.`is`.pmu.TaskApplication
 import ru.ulstu.`is`.pmu.ui.task.edit.UserDropDownViewModel
 import ru.ulstu.`is`.pmu.ui.task.edit.TaskEditViewModel
+import ru.ulstu.`is`.pmu.ui.task.list.FavoriteTaskList
+import ru.ulstu.`is`.pmu.ui.task.list.FavoriteTaskListViewModel
 import ru.ulstu.`is`.pmu.ui.task.list.TaskListViewModel
 
 object AppViewModelProvider {
@@ -23,6 +25,9 @@ object AppViewModelProvider {
         }
         initializer {
             UserDropDownViewModel(taskApplication().container.userRestRepository)
+        }
+        initializer {
+            FavoriteTaskListViewModel(taskApplication().container.taskRestRepository)
         }
     }
 }

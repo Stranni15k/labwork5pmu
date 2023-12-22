@@ -9,8 +9,8 @@ data class TaskRemote(
     val name: String = "",
     val description: String = "",
     val endDate: String = "",
-    val favorite: Boolean,
-    val userId: Int,
+    val favorite: Boolean = false, // Значение по умолчанию
+    val userId: Int = 1, // Значение по умолчанию
 )
 
 fun TaskRemote.toTask(): Task = Task(
@@ -18,7 +18,7 @@ fun TaskRemote.toTask(): Task = Task(
     name,
     description,
     endDate,
-    favorite = false,
+    favorite,
     userId
 )
 
@@ -27,6 +27,6 @@ fun Task.toTaskRemote(): TaskRemote = TaskRemote(
     name,
     description,
     endDate,
-    favorite = false,
+    favorite,
     userId = 1
 )

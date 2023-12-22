@@ -39,7 +39,7 @@ data class Task(
         endDate: String,
         favorite: Boolean,
         user: User,
-    ) : this(0, name, description, endDate, favorite, user.uid)
+    ) : this(0, name, description, endDate, favorite, 1)
 
 
     companion object {
